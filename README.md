@@ -1,0 +1,2 @@
+# PAL-Website
+PersonalAniList - Website
