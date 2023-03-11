@@ -10,7 +10,7 @@ const HighestRating = ({ highest }) => {
           {highest.map((data) => (
             <Card
               key={generateId()}
-              url={`/dashboard/view/${data.data.mal_id}/anime`}
+              url={`/dashboard/view/${data.slug}/show`}
               pathImage={data.data.image}
               name={data.data.title}
               background="bg-secondary"

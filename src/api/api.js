@@ -14,7 +14,7 @@ export async function login(data) {
             body: JSON.stringify(data)
         };
 
-        const response = await fetch(import.meta.env.VITE_ENDPOINT_API_PAL_LOGIN, options);
+        const response = await fetch(`${import.meta.env.VITE_BASE_URL_PAL_API}/login`, options);
 
         const result = await response.json();
         return result;
@@ -37,7 +37,7 @@ export async function register(data) {
             body: JSON.stringify(data)
         };
 
-        const response = await fetch(import.meta.env.VITE_ENDPOINT_API_PAL_REGISTER, options);
+        const response = await fetch(`${import.meta.env.VITE_BASE_URL_PAL_API}/register`, options);
 
         const result = await response.json();
         return result;
@@ -60,7 +60,7 @@ export async function logout(token) {
             }
         };
 
-        const response = await fetch(import.meta.env.VITE_ENDPOINT_API_PAL_LOGOUT, options);
+        const response = await fetch(`${import.meta.env.VITE_BASE_URL_PAL_API}/logout`, options);
 
         const result = await response.json();
         return result;
@@ -81,7 +81,7 @@ export async function getList(token) {
             }
         };
 
-        const response = await fetch(import.meta.env.VITE_ENDPOINT_API_PAL_LIST, options);
+        const response = await fetch(`${import.meta.env.VITE_BASE_URL_PAL_API}/list`, options);
 
         const result = await response.json();
         return result;
@@ -102,7 +102,7 @@ export async function getRecently(token) {
             }
         };
 
-        const response = await fetch(import.meta.env.VITE_ENDPOINT_API_PAL_RECENTLY, options);
+        const response = await fetch(`${import.meta.env.VITE_BASE_URL_PAL_API}/recently`, options);
 
         const result = await response.json();
         return result;
@@ -123,7 +123,7 @@ export async function getHighestRating(token) {
             }
         };
 
-        const response = await fetch(import.meta.env.VITE_ENDPOINT_API_PAL_HIGHEST, options);
+        const response = await fetch(`${import.meta.env.VITE_BASE_URL_PAL_API}/highest`, options);
 
         const result = await response.json();
         return result;
@@ -144,7 +144,7 @@ export async function getRecommendations(token) {
             }
         };
 
-        const response = await fetch(import.meta.env.VITE_ENDPOINT_API_PAL_RECOMMENDATIONS, options);
+        const response = await fetch(`${import.meta.env.VITE_BASE_URL_PAL_API}/recommendations`, options);
 
         const result = await response.json();
         return result;
@@ -163,7 +163,7 @@ export async function getUserData(token) {
             }
         };
 
-        const response = await axios.get(import.meta.env.VITE_ENDPOINT_API_PAL_GET_USER, config);
+        const response = await axios.get(`${import.meta.env.VITE_BASE_URL_PAL_API}/user`, config);
         const result = response.data;
 
         return result;
@@ -188,7 +188,7 @@ export async function updateProfile(token, data) {
             body: JSON.stringify(data)
         };
 
-        const response = await fetch(import.meta.env.VITE_ENDPOINT_API_PAL_UPDATE_PROFILE, options);
+        const response = await fetch(`${import.meta.env.VITE_BASE_URL_PAL_API}/profile`, options);
 
         const result = await response.json();
         return result;
@@ -208,7 +208,7 @@ export async function updateProfilePhoto(token, file) {
             body: file,
         };
 
-        const response = await fetch(import.meta.env.VITE_ENDPOINT_API_PAL_UPDATE_PROFILE_PHOTO, options);
+        const response = await fetch(`${import.meta.env.VITE_BASE_URL_PAL_API}/image`, options);
         const result = await response.json();
 
         return result;
@@ -232,7 +232,7 @@ export async function changePassword(token, data) {
             body: JSON.stringify(data)
         };
 
-        const response = await fetch(import.meta.env.VITE_ENDPOINT_API_PAL_CHANGE_PASSWORD, options);
+        const response = await fetch(`${import.meta.env.VITE_BASE_URL_PAL_API}/change`, options);
 
         const result = await response.json();
         return result;
@@ -255,7 +255,49 @@ export async function addList(token, data) {
             },
             body: JSON.stringify(data)
         };
-        const response = await fetch(import.meta.env.VITE_ENDPOINT_API_PAL_CREATE, options);
+        const response = await fetch(`${import.meta.env.VITE_BASE_URL_PAL_API}/create`, options);
+
+        const result = await response.json();
+        return result;
+    } catch (error) {
+        window.location = "/";
+    }
+}
+
+export async function showAnime(token, slug) {
+    try {
+        const options = {
+            method: 'GET',
+            headers: {
+                'content-type': 'application/json',
+                'Accept-Encoding': 'application/gzip',
+                'Accept': 'application/json',
+                'Authorization': 'Bearer ' + token
+            }
+        };
+
+        const response = await fetch(`${import.meta.env.VITE_BASE_URL_PAL_API}/anime/${slug}`, options);
+
+        const result = await response.json();
+        return result;
+    } catch (error) {
+        window.location = "/";
+    }
+}
+
+export async function getAnime(token, slug) {
+    try {
+        const options = {
+            method: 'GET',
+            headers: {
+                'content-type': 'application/json',
+                'Accept-Encoding': 'application/gzip',
+                'Accept': 'application/json',
+                'Authorization': 'Bearer ' + token
+            }
+        };
+
+        const response = await fetch(`${import.meta.env.VITE_BASE_URL_PAL_API}/anime/${slug}/get`, options);
 
         const result = await response.json();
         return result;
@@ -277,9 +319,34 @@ export async function deleteUser(token) {
                 'User-Agent': navigator.userAgent
             }
         };
-        const response = await fetch(import.meta.env.VITE_ENDPOINT_API_PAL_GET_USER, options);
+        const response = await fetch(`${import.meta.env.VITE_BASE_URL_PAL_API}/user`, options);
 
         const result = await response.json();
+        return result;
+    } catch (error) {
+        window.location = "/";
+    }
+}
+
+export async function updateAnime(token, data) {
+    try {
+        const options = {
+            method: 'PUT',
+            headers: {
+                'content-type': 'application/json',
+                'Accept-Encoding': 'application/gzip',
+                'Accept': 'application/json',
+                'Connection': 'keep-alive',
+                'Authorization': 'Bearer ' + token,
+                'User-Agent': navigator.userAgent
+            },
+            body: JSON.stringify(data)
+        };
+
+        const response = await fetch(`${import.meta.env.VITE_BASE_URL_PAL_API}/anime`, options);
+
+        const result = await response.json();
+
         return result;
     } catch (error) {
         window.location = "/";

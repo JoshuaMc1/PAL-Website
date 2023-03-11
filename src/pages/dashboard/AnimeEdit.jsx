@@ -1,27 +1,21 @@
-import { useState, useEffect } from "react";
-import { Form, useActionData, useLoaderData, Navigate } from "react-router-dom";
-import Rate from "../../components/Rate";
-import Card from "../../components/Card";
-import ModalAnimeCharacters from "../../components/ModalAnimeCharacters";
-import NoImage from "../../img/no-img.png";
-import Input from "../../components/Input";
-import { searchAnime, getAnime, getCharacter } from "../../api/characters";
-import ConfirmDialog from "../../components/ConfirmDialog";
-import Textarea from "../../components/Textarea";
+import { useEffect, useState } from "react";
+import { Form, Navigate, useActionData, useLoaderData } from "react-router-dom";
+import { showAnime, updateAnime } from "../../api/api";
 import Alert from "../../components/Alert";
-import { addList, getAnime as loadAnimeApi } from "../../api/api";
+import Card from "../../components/Card";
+import ConfirmDialog from "../../components/ConfirmDialog";
+import Input from "../../components/Input";
+import ModalAnimeCharacters from "../../components/ModalAnimeCharacters";
+import Rate from "../../components/Rate";
+import Textarea from "../../components/Textarea";
+import NoImage from "../../img/no-img.png";
 
 export function loader({ params }) {
-  if (params.slug) {
-    return {
-      search: true,
-      slug: params.slug,
-    };
+  if (params.anime) {
+    return params.anime;
   }
-  return {
-    search: false,
-    slug: null,
-  };
+
+  return false;
 }
 
 export async function action({ request }) {
@@ -63,76 +57,17 @@ export async function action({ request }) {
     return errors;
   }
 
-  const character = data.characters.split(","),
-    token = data.token,
-    characterArray = [],
-    animeArray = [];
+  const anime = JSON.parse(data.anime);
+  const characters = JSON.parse(data.characters);
 
-  if (character.length > 3) {
-    const firstThree = character.slice(0, 2);
-    const remaining = character.slice(2);
-
-    const firstThreePromises = firstThree.map((ch) => getCharacter(ch));
-
-    await Promise.all(firstThreePromises).then((results) => {
-      results.forEach((result) => {
-        characterArray.push({
-          mal_id: result.data.mal_id,
-          name: result.data.name,
-          name_kanji: result.data.name_kanji,
-          image: result.data.images.jpg.image_url,
-        });
-      });
-    });
-
-    await new Promise((resolve) => setTimeout(resolve, 3100));
-
-    remaining.map(async (ch) => {
-      const fullCharacter = await getCharacter(ch);
-      characterArray.push({
-        mal_id: fullCharacter.data.mal_id,
-        name: fullCharacter.data.name,
-        name_kanji: fullCharacter.data.name_kanji,
-        image: fullCharacter.data.images.jpg.image_url,
-      });
-
-      await new Promise((resolve) => setTimeout(resolve, 3100));
-    });
-  } else {
-    character.map(async (ch) => {
-      const fullCharacter = await getCharacter(ch);
-      characterArray.push({
-        mal_id: fullCharacter.data.mal_id,
-        name: fullCharacter.data.name,
-        name_kanji: fullCharacter.data.name_kanji,
-        image: fullCharacter.data.images.jpg.image_url,
-      });
-
-      await new Promise((resolve) => setTimeout(resolve, 3100));
-    });
-  }
-
-  await new Promise((resolve) => setTimeout(resolve, 3000));
-
-  const response = await getAnime(data.anime);
-
-  animeArray.push({
-    mal_id: response.data.mal_id,
-    title: response.data.title,
-    title_japanese: response.data.title_japanese,
-    episodes: response.data.episodes,
-    synopsis: response.data.synopsis,
-    airing: response.data.airing,
-    image: response.data.images.jpg.image_url,
-    genres: response.data.genres,
-    demographics: response.data.demographics,
-    trailer: response.data.trailer,
-    relations: response.data.relations,
-    rating: response.data.rating,
-    studios: response.data.studios,
-    season: response.data.season,
-    status: response.data.status,
-    year: response.data.year,
+  const newCharacters = characters.map((character) => {
+    if (character.hasOwnProperty("images")) {
+      const image = character.images.jpg.image_url;
+      character.image = character.images;
+      character["image"] = image;
+      delete character.images;
+    }
+    return character;
   });
 
   const newData = {
@@ -146,37 +81,34 @@ export async function action({ request }) {
       the_good: data.good,
       the_bad: data.bad,
     },
-    anime: { ...animeArray[0] },
-    characters: characterArray,
+    anime: anime,
+    characters: characters,
+    newCharacters: newCharacters,
   };
 
-  const save = await addList(token, newData);
+  const response = await updateAnime(data.token, newData);
 
-  if (!save.success) {
+  if (!response.success) {
     errors.push({
       type: "danger",
-      message: save.message,
+      message: response.message,
     });
 
     return errors;
   }
 
-  errors.push({
+  return {
     success: true,
-    message: "El anime se a guardado exitosamente...",
-    slug: save.slug,
-  });
-
-  return errors;
+    message: response.message,
+    slug: response.slug,
+  };
 }
 
-const Add = ({ token }) => {
+const AnimeEdit = ({ token }) => {
   const [open, setOpen] = useState(false),
     [openConfirmation, setOpenConfirmation] = useState(false),
     [anime, setAnime] = useState({}),
     [characters, setCharacters] = useState([]),
-    [search, setSearch] = useState(""),
-    [result, setResult] = useState([]),
     [genres, setGenres] = useState([]),
     [demographics, setDemographics] = useState([]),
     [deleteCharacter, setDeleteCharacter] = useState({}),
@@ -185,37 +117,50 @@ const Add = ({ token }) => {
     [historyRating, setHistoryRating] = useState(0),
     [charactersRating, setCharactersRating] = useState(0),
     [musicRating, setMusicRating] = useState(0),
+    [currently, setCurrently] = useState(""),
     [isEnabled, setIsEnabled] = useState(true),
+    [theBad, setTheBad] = useState(""),
+    [theGood, setTheGood] = useState(""),
     [isRedirect, setIsRedirect] = useState(false),
-    [saveSlug, setSaveSlug] = useState("");
+    [slug, setSlug] = useState("");
 
+  const loader = useLoaderData();
   const errors = useActionData();
-  const slug = useLoaderData();
-
-  const openModal = () => {
-    setOpen(true);
-  };
 
   useEffect(() => {
-    if (errors?.length > 0) {
-      const response = errors[0];
-      if (response.success) {
-        setSaveSlug(response.slug);
-        setIsRedirect(true);
-      }
+    if (errors?.success) {
+      setSlug(errors.slug);
+      setIsRedirect(true);
     }
   }, [errors]);
 
   useEffect(() => {
-    if (search.length >= 3) {
-      const consult = async () => {
-        setResult([]);
-        const data = await searchAnime(search);
-        setResult(data.data);
+    if (loader.length > 0) {
+      const searchAnime = async () => {
+        const response = await showAnime(token, loader);
+
+        const tempAnime = response.data.anime;
+        tempAnime.slug = loader;
+        setAnime(tempAnime);
+        setGenres(response.data.anime.genres);
+        setCharacters(response.data.characters);
+        setCurrently(response.data.currently);
+        setGeneralRating(response.data.overall_rating);
+        setAnimationRating(response.data.animation_rating);
+        setHistoryRating(response.data.history_rating);
+        setCharactersRating(response.data.characters_rating);
+        setMusicRating(response.data.music_rating);
+        setTheBad(response.data.the_bad);
+        setTheGood(response.data.the_good);
+        setIsEnabled(false);
+        if (response.data.anime.demographics.length > 0) {
+          setDemographics(response.data.anime.demographics);
+        } else setDemographics([{ name: "none" }]);
       };
-      consult();
-    } else setResult([]);
-  }, [search]);
+
+      searchAnime();
+    }
+  }, [loader]);
 
   useEffect(() => {
     if (characters?.length > 4) {
@@ -227,102 +172,18 @@ const Add = ({ token }) => {
     }
   }, [characters]);
 
-  useEffect(() => {
-    if (slug.search) {
-      const loadAnime = async () => {
-        if (!parseInt(slug.slug)) {
-          const response = await loadAnimeApi(token, slug.slug);
+  const openModal = () => {
+    setOpen(true);
+  };
 
-          if (response.success) {
-            setAnime(response.data);
-            setResult([]);
-            setSearch("");
-            setGenres(response.data.genres);
-            setIsEnabled(false);
-            if (response.data.demographics.length > 0) {
-              setDemographics(response.data.demographics);
-            } else setDemographics([{ name: "none" }]);
-          }
-        } else {
-          const response = await getAnime(slug.slug);
-
-          setAnime(response.data);
-          setResult([]);
-          setSearch("");
-          setGenres(response.data.genres);
-          setIsEnabled(false);
-          if (response.data.demographics.length > 0) {
-            setDemographics(response.data.demographics);
-          } else setDemographics([{ name: "none" }]);
-        }
-      };
-
-      loadAnime();
-    }
-  }, [slug]);
-
-  const handleSearch = () => {
-    const input = document.querySelector("#search");
-    setSearch(input.value);
+  const handleStatusChange = (event) => {
+    setCurrently(event.target.value);
   };
 
   return (
     <>
       {isRedirect && (
-        <Navigate
-          to={`/dashboard/view/${saveSlug}/show/created`}
-          replace={true}
-        />
-      )}
-      {/* Buscador de anime */}
-      <div className="mb-4 px-5 py-6 bg-secondary rounded-lg shadow-lg">
-        <label className="text-white text-2xl font-bold" htmlFor="search">
-          Buscar anime
-        </label>
-        <div className="flex">
-          <input
-            className="p-3 mt-2 rounded-lg bg-primary w-full text-white outline-none"
-            type="search"
-            placeholder="Busca el anime que quieres agregar"
-            id="search"
-            list="search-list"
-            autoComplete="off"
-            onKeyUp={(e) => e.key === "Enter" && handleSearch()}
-          />
-          <button
-            onClick={handleSearch}
-            className="w-32 mt-2 mx-3 bg-primary text-white rounded-lg shadow-lg font-bold hover:bg-gray-700 transition-colors"
-          >
-            Buscar
-          </button>
-        </div>
-      </div>
-      {Object.keys(result).length > 0 && (
-        <div className="bg-secondary p-3 rounded-lg shadow-lg mb-4">
-          <h1 className="text-xl text-white font-bold mb-4">
-            Resultados de la búsqueda
-          </h1>
-          <div className="grid grid-cols-2 md:grid-cols-6 gap-2">
-            {result.map((res) => (
-              <div
-                onClick={() => {
-                  setAnime(res);
-                  setResult([]);
-                  setSearch("");
-                  setGenres(res.genres);
-                  setIsEnabled(false);
-                  if (res.demographics.length > 0) {
-                    setDemographics(res.demographics);
-                  } else setDemographics([{ name: "none" }]);
-                }}
-                className="px-2 py-1 text-white bg-primary rounded-xl shadow-xl hover:bg-gray-700 transition-colors cursor-pointer text-center"
-                key={res.mal_id}
-              >
-                {res.title}
-              </div>
-            ))}
-          </div>
-        </div>
+        <Navigate to={`/dashboard/view/${slug}/show/updated`} replace={true} />
       )}
       {errors?.length > 0 && (
         <Alert type={errors[0]?.type}>{errors[0]?.message}</Alert>
@@ -332,17 +193,15 @@ const Add = ({ token }) => {
         <input
           type="hidden"
           name="anime"
-          defaultValue={Object.keys(anime).length > 0 ? anime.mal_id : ""}
+          defaultValue={JSON.stringify(anime)}
         />
-        {Object.keys(characters).length > 0 ? (
-          <input
-            type="hidden"
-            name="characters"
-            defaultValue={characters.map((character) => character.mal_id)}
-          />
-        ) : (
-          <input type="hidden" name="characters" defaultValue={""} />
-        )}
+        <input
+          type="hidden"
+          name="characters"
+          defaultValue={
+            characters?.length > 0 ? JSON.stringify(characters) : ""
+          }
+        />
         <input
           type="hidden"
           name="generalRating"
@@ -364,10 +223,8 @@ const Add = ({ token }) => {
           defaultValue={charactersRating}
         />
         <input type="hidden" name="musicRating" defaultValue={musicRating} />
-        {/* Contenedor del formulario */}
         <div className="lg:flex gap-4">
           <div className="w-full lg:mb-0 lg:w-1/4 space-y-4 mb-4">
-            {/* Poster del anime */}
             <div className="overflow-hidden rounded-lg shadow-lg">
               {Object.keys(anime).length > 0 ? (
                 <img
@@ -387,7 +244,6 @@ const Add = ({ token }) => {
                 />
               )}
             </div>
-            {/* Calificación general */}
             <div className="bg-secondary p-3 rounded-lg shadow-lg">
               <h2 className="text-2xl text-center text-white font-bold">
                 Calificación General
@@ -396,7 +252,6 @@ const Add = ({ token }) => {
                 <Rate rating={generalRating} setRating={setGeneralRating} />
               </div>
             </div>
-            {/* Calificación de la animación */}
             <div className="bg-secondary p-3 rounded-lg shadow-lg">
               <h2 className="text-2xl text-center text-white font-bold">
                 Animación
@@ -405,7 +260,6 @@ const Add = ({ token }) => {
                 <Rate rating={animationRating} setRating={setAnimationRating} />
               </div>
             </div>
-            {/* Calificación de la historia */}
             <div className="bg-secondary p-3 rounded-lg shadow-lg">
               <h2 className="text-2xl text-center text-white font-bold">
                 Historia
@@ -414,7 +268,6 @@ const Add = ({ token }) => {
                 <Rate rating={historyRating} setRating={setHistoryRating} />
               </div>
             </div>
-            {/* Calificación de la personajes */}
             <div className="bg-secondary p-3 rounded-lg shadow-lg">
               <h2 className="text-2xl text-center text-white font-bold">
                 Personajes
@@ -426,7 +279,6 @@ const Add = ({ token }) => {
                 />
               </div>
             </div>
-            {/* Calificación de la música */}
             <div className="bg-secondary p-3 rounded-lg shadow-lg">
               <h2 className="text-2xl text-center text-white font-bold">
                 Música
@@ -437,21 +289,21 @@ const Add = ({ token }) => {
             </div>
           </div>
           <div className="w-full lg:mb-0 lg:w-3/4 space-y-4 mb-4">
-            {/* Nombre/titulo del anime */}
             <Input
               labelName="Nombre del anime"
               inputType="text"
               placeholder="Nombre del anime"
               defaultValue={anime.title || ""}
               id="title"
+              readOnly={true}
             />
-            {/* Sinopsis del anime */}
             <Textarea
               labelName="Sinopsis"
               id="synopsis"
               defaultValue={
                 Object(anime.synopsis).length > 0 ? anime.synopsis : ""
               }
+              readOnly={true}
             />
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               {/* Géneros del anime */}
@@ -491,11 +343,12 @@ const Add = ({ token }) => {
                 <select
                   className="p-3 mt-2 block rounded-lg bg-primary w-full text-white outline-none"
                   id="status"
+                  value={currently}
+                  onChange={handleStatusChange}
                   name="status"
                 >
-                  <option value="">Seleccione una opción</option>
-                  <option value="1">Viendo en emisión</option>
-                  <option value="2">Finalizado</option>
+                  <option value={1}>Viendo en emisión</option>
+                  <option value={2}>Finalizado</option>
                 </select>
               </div>
             </div>
@@ -522,18 +375,22 @@ const Add = ({ token }) => {
               {/* Lista de los personajes favoritos agregados */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2 py-4">
                 {characters.length > 0 ? (
-                  characters.map((c) => (
+                  characters.map((character) => (
                     <div
-                      key={c.mal_id}
+                      key={character.mal_id}
                       onClick={() => {
                         setOpenConfirmation(true);
-                        setDeleteCharacter(c);
+                        setDeleteCharacter(character);
                       }}
                     >
                       <Card
                         url={"#"}
-                        pathImage={c.images.jpg.image_url}
-                        name={c.name}
+                        pathImage={
+                          character.images
+                            ? character.images.jpg.image_url
+                            : character.image
+                        }
+                        name={character.name}
                       />
                     </div>
                   ))
@@ -547,19 +404,30 @@ const Add = ({ token }) => {
             {/* Comentarios */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Lo bueno */}
-              <Textarea labelName="Lo bueno" id="good" name="good" rows={5} />
+              <Textarea
+                labelName="Lo bueno"
+                defaultValue={theGood}
+                id="good"
+                name="good"
+                rows={5}
+              />
               {/* Lo malo */}
-              <Textarea labelName="Lo malo" id="bad" name="bad" rows={5} />
+              <Textarea
+                labelName="Lo malo"
+                defaultValue={theBad}
+                id="bad"
+                name="bad"
+                rows={5}
+              />
             </div>
           </div>
         </div>
-        {/* Botón para guardar el anime y agregarlo a la lista */}
         <div className="w-full my-4">
           <div className="px-5 py-5 bg-secondary rounded-lg shadow-lg">
             <input
               className="w-full px-3 py-2 cursor-pointer text-white text-2xl font-bold bg-primary hover:bg-gray-700 transition-colors shadow-lg rounded-lg"
               type="submit"
-              value=" Guardar en la lista"
+              value="Guardar cambios"
             />
           </div>
         </div>
@@ -583,4 +451,4 @@ const Add = ({ token }) => {
   );
 };
 
-export default Add;
+export default AnimeEdit;

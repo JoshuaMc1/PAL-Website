@@ -8,7 +8,7 @@ const colors = {
 
 const stars = Array(5).fill(0);
 
-const Rate = ({ rating, setRating }) => {
+const Rate = ({ rating, setRating, editable = true }) => {
   const [currentValue, setCurrentValue] = useState(0),
     [hoverValue, setHoverValue] = useState(undefined);
 
@@ -17,15 +17,19 @@ const Rate = ({ rating, setRating }) => {
   }, [rating]);
 
   const handleClick = (value) => {
-    setCurrentValue(value);
-    setRating(value);
+    if (editable) {
+      setCurrentValue(value);
+      setRating(value);
+    }
   };
 
   const handleMouseOver = (value) => {
-    setHoverValue(value);
+    if (editable) {
+      setHoverValue(value);
+    }
   };
 
-  const handleMouseLeave = (value) => {
+  const handleMouseLeave = () => {
     setHoverValue(undefined);
   };
 
@@ -38,7 +42,7 @@ const Rate = ({ rating, setRating }) => {
             size={24}
             style={{
               marginRight: 10,
-              cursor: "pointer",
+              cursor: editable ? "pointer" : "default",
             }}
             color={
               (hoverValue || currentValue) > index ? colors.orange : colors.gray

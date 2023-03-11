@@ -2,6 +2,7 @@ import { Fragment, useRef, useState, useEffect } from "react";
 import { Dialog, Transition } from "@headlessui/react";
 import Card from "./Card";
 import { searchCharacter } from "../api/characters";
+import { generateId } from "../helpers/helpers";
 
 const Modal = ({ open, setOpen, characters, setCharacters }) => {
   const [search, setSearch] = useState(""),
@@ -112,7 +113,7 @@ const Modal = ({ open, setOpen, characters, setCharacters }) => {
                           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 py-4">
                             {result.map((c) => (
                               <div
-                                key={c.mal_id}
+                                key={c.mal_id + generateId()}
                                 onClick={() => {
                                   setCharacters([...characters, c]);
                                   setOpen(false);

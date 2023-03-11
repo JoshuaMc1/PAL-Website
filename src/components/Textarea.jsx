@@ -4,6 +4,7 @@ const Textarea = ({
   defaultValue = "",
   rows = 10,
   name,
+  readOnly = false,
 }) => {
   return (
     <>
@@ -12,11 +13,14 @@ const Textarea = ({
           {labelName}
         </label>
         <textarea
-          className="p-3 mt-2 block rounded-lg bg-primary w-full text-white resize-none outline-none"
+          className={`p-3 mt-2 block rounded-lg bg-primary w-full text-white border-none outline-none ${
+            readOnly && "cursor-pointer"
+          }`}
           id={id}
           rows={rows}
           name={name}
           defaultValue={defaultValue}
+          readOnly={readOnly}
         ></textarea>
       </div>
     </>

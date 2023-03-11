@@ -12,15 +12,24 @@ import ChangePassword from "./pages/ChangePassword";
 import ErrorPage from "./pages/ErrorPage";
 import LayoutDashboard from "./components/LayoutDashboard";
 import Dashboard from "./pages/dashboard/Dashboard";
-import Add, { action as addAction } from "./pages/dashboard/Add";
+import Add, {
+  action as addAction,
+  loader as addLoader,
+} from "./pages/dashboard/Add";
 import List from "./pages/dashboard/List";
 import Profile, { action as profileAction } from "./pages/dashboard/Profile";
 import SeasonNow from "./pages/dashboard/SeasonNow";
 import Upcoming from "./pages/dashboard/Upcoming";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { useState } from "react";
-import View from "./pages/dashboard/View";
+import Show, { loader as loaderShow } from "./pages/dashboard/Show";
 import { logout } from "./api/api";
+import Error404 from "./pages/Error404";
+import View, { loader as loaderView } from "./pages/dashboard/View";
+import AnimeEdit, {
+  loader as loaderEdit,
+  action as animeEditAction,
+} from "./pages/dashboard/AnimeEdit";
 
 const App = () => {
   const [token, setToken] = useState(
@@ -96,10 +105,11 @@ const App = () => {
           errorElement: <ErrorPage />,
         },
         {
-          path: "/dashboard/add",
+          path: "/dashboard/add/:slug?",
           element: <Add token={token} />,
           errorElement: <ErrorPage />,
           action: addAction,
+          loader: addLoader,
         },
         {
           path: "/dashboard/list",
@@ -113,9 +123,16 @@ const App = () => {
           errorElement: <ErrorPage />,
         },
         {
-          path: "/dashboard/view/:id/anime",
+          path: "/dashboard/view/:slug/show/:status?",
+          element: <Show token={token} />,
+          errorElement: <ErrorPage />,
+          loader: loaderShow,
+        },
+        {
+          path: "/dashboard/view/:slug/view",
           element: <View token={token} />,
           errorElement: <ErrorPage />,
+          loader: loaderView,
         },
         {
           path: "/dashboard/season",
@@ -129,7 +146,14 @@ const App = () => {
         },
         {
           path: "/dashboard/*",
-          element: <div>Error 404</div>,
+          element: <Error404 />,
+        },
+        {
+          path: "/dashboard/:anime/edit",
+          element: <AnimeEdit token={token} />,
+          loader: loaderEdit,
+          action: animeEditAction,
+          errorElement: <ErrorPage />,
         },
         {
           path: "/dashboard/logout",

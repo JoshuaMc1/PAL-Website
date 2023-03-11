@@ -73,7 +73,7 @@ const Upcoming = () => {
             {animeData.map((data) => (
               <Card
                 key={data.mal_id}
-                url={`/dashboard/view/${data.mal_id}/anime`}
+                url={`/dashboard/view/${data.mal_id}/view`}
                 pathImage={data.images.jpg.large_image_url}
                 name={data.title}
                 background="bg-secondary"

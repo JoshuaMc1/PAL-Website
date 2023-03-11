@@ -18,6 +18,10 @@
     background-color: #2E3339;
 }
 
+.h-trailer {
+    height: 36rem;
+}
+
 *::-webkit-scrollbar {
     width: 8px;
     height: 8px;

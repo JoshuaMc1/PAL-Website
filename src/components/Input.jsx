@@ -4,6 +4,7 @@ const Input = ({
   placeholder = "",
   id,
   defaultValue = "",
+  readOnly = false,
 }) => {
   return (
     <>
@@ -12,11 +13,14 @@ const Input = ({
           {labelName}
         </label>
         <input
-          className="p-3 mt-2 block rounded-lg bg-primary w-full text-white border-none outline-none"
+          className={`p-3 mt-2 block rounded-lg bg-primary w-full text-white border-none outline-none ${
+            readOnly && "cursor-pointer"
+          }`}
           type={inputType}
           placeholder={placeholder}
           id={id}
           defaultValue={defaultValue}
+          readOnly={readOnly}
         />
       </div>
     </>

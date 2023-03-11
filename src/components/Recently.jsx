@@ -10,9 +10,9 @@ const Recently = ({ recently }) => {
           {recently.map((data) => (
             <Card
               key={generateId()}
-              url={`/dashboard/view/${data.mal_id}/anime`}
-              pathImage={data.image}
-              name={data.title}
+              url={`/dashboard/view/${data.slug}/show`}
+              pathImage={data.data.image}
+              name={data.data.title}
               background="bg-secondary"
             />
           ))}

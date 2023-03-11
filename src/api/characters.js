@@ -227,3 +227,35 @@ export async function getUpcoming(page = 1) {
         console.log(error);
     }
 }
+
+export async function getCharactersAnime(anime = "") {
+    const MAX_REQUESTS_PER_SECOND = 2;
+    let requests = 0;
+    let lastRequestTime = Date.now();
+
+    const api = axios.create({
+        baseURL: import.meta.env.VITE_ENDPOINT_ANIME_GET_ANIME_BY_ID,
+        timeout: 20000,
+    });
+
+    api.interceptors.request.use((config) => {
+        const now = Date.now();
+        if (requests >= MAX_REQUESTS_PER_SECOND) {
+            const timeSinceLastRequest = now - lastRequestTime;
+            const timeToWait = Math.max(0, 1000 - timeSinceLastRequest);
+            return new Promise((resolve) => setTimeout(() => resolve(config), timeToWait));
+        }
+        requests++;
+        lastRequestTime = now;
+        return config;
+    });
+
+    try {
+        const response = await api.get(`${anime}/characters`);
+        const result = response.data;
+
+        return result;
+    } catch (error) {
+        console.log(error);
+    }
+}
