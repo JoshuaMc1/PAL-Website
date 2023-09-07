@@ -1,4 +1,4 @@
-const Spinner = () => {
+const Spinner = ({ text = "Cargando" }) => {
   return (
     <div className="flex h-full justify-center items-center flex-col">
       <div className="sk-chase">
@@ -10,7 +10,7 @@ const Spinner = () => {
         <div className="sk-chase-dot"></div>
       </div>
       <span className="text-xl mt-2 text-white font-bold text-center">
-        Cargando
+        {text}
       </span>
     </div>
   );

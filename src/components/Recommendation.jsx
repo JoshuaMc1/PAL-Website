@@ -1,6 +1,6 @@
-import Card from "./Card";
-import { FaSadTear } from "react-icons/fa";
 import { generateId } from "../helpers/helpers";
+import { FaSadTear } from "react-icons/fa";
+import Card from "./Card";
 
 const Recommendation = ({ recommendation }) => {
   return (

@@ -1,15 +1,16 @@
 import { useState, useEffect } from "react";
 import { Form, useActionData, useLoaderData, Navigate } from "react-router-dom";
+import { addList, getAnime as loadAnimeApi } from "../../api/api";
+import { searchAnime, getAnime, getCharacter } from "../../api/characters";
 import Rate from "../../components/Rate";
 import Card from "../../components/Card";
 import ModalAnimeCharacters from "../../components/ModalAnimeCharacters";
 import NoImage from "../../img/no-img.png";
 import Input from "../../components/Input";
-import { searchAnime, getAnime, getCharacter } from "../../api/characters";
 import ConfirmDialog from "../../components/ConfirmDialog";
 import Textarea from "../../components/Textarea";
 import Alert from "../../components/Alert";
-import { addList, getAnime as loadAnimeApi } from "../../api/api";
+import Spinner from "../../components/Spinner";
 
 export function loader({ params }) {
   if (params.slug) {
@@ -187,6 +188,7 @@ const Add = ({ token }) => {
     [musicRating, setMusicRating] = useState(0),
     [isEnabled, setIsEnabled] = useState(true),
     [isRedirect, setIsRedirect] = useState(false),
+    [isSaving, setIsSaving] = useState(false),
     [saveSlug, setSaveSlug] = useState("");
 
   const errors = useActionData();
@@ -199,6 +201,9 @@ const Add = ({ token }) => {
   useEffect(() => {
     if (errors?.length > 0) {
       const response = errors[0];
+
+      setIsSaving(false);
+
       if (response.success) {
         setSaveSlug(response.slug);
         setIsRedirect(true);
@@ -216,16 +221,6 @@ const Add = ({ token }) => {
       consult();
     } else setResult([]);
   }, [search]);
-
-  useEffect(() => {
-    if (characters?.length > 4) {
-      setIsEnabled(true);
-    } else {
-      if (anime?.length > 0) {
-        setIsEnabled(false);
-      }
-    }
-  }, [characters]);
 
   useEffect(() => {
     if (slug.search) {
@@ -261,6 +256,14 @@ const Add = ({ token }) => {
     }
   }, [slug]);
 
+  useEffect(() => {
+    if (Object.keys(anime).length > 0) {
+      if (Object.keys(characters).length > 4) {
+        setIsEnabled(true);
+      }
+    }
+  }, [characters]);
+
   const handleSearch = () => {
     const input = document.querySelector("#search");
     setSearch(input.value);
@@ -268,6 +271,11 @@ const Add = ({ token }) => {
 
   return (
     <>
+      {isSaving && (
+        <div className="absolute top-1/2 left-1/2 transform">
+          <Spinner text="Guardando en la lista..." />
+        </div>
+      )}
       {isRedirect && (
         <Navigate
           to={`/dashboard/view/${saveSlug}/show/created`}
@@ -275,7 +283,11 @@ const Add = ({ token }) => {
         />
       )}
       {/* Buscador de anime */}
-      <div className="mb-4 px-5 py-6 bg-secondary rounded-lg shadow-lg">
+      <div
+        className={`mb-4 px-5 py-6 bg-secondary rounded-lg shadow-lg ${
+          isSaving && "opacity-25"
+        }`}
+      >
         <label className="text-white text-2xl font-bold" htmlFor="search">
           Buscar anime
         </label>
@@ -315,10 +327,15 @@ const Add = ({ token }) => {
                     setDemographics(res.demographics);
                   } else setDemographics([{ name: "none" }]);
                 }}
-                className="px-2 py-1 text-white bg-primary rounded-xl shadow-xl hover:bg-gray-700 transition-colors cursor-pointer text-center"
+                className=""
                 key={res.mal_id}
               >
-                {res.title}
+                <Card
+                  pathImage={res.images.jpg.large_image_url}
+                  name={res.title}
+                  url={"#"}
+                  enabledHover={false}
+                />
               </div>
             ))}
           </div>
@@ -365,7 +382,7 @@ const Add = ({ token }) => {
         />
         <input type="hidden" name="musicRating" defaultValue={musicRating} />
         {/* Contenedor del formulario */}
-        <div className="lg:flex gap-4">
+        <div className={`lg:flex gap-4 ${isSaving && "opacity-25"}`}>
           <div className="w-full lg:mb-0 lg:w-1/4 space-y-4 mb-4">
             {/* Poster del anime */}
             <div className="overflow-hidden rounded-lg shadow-lg">
@@ -444,6 +461,7 @@ const Add = ({ token }) => {
               placeholder="Nombre del anime"
               defaultValue={anime.title || ""}
               id="title"
+              readOnly={true}
             />
             {/* Sinopsis del anime */}
             <Textarea
@@ -554,12 +572,16 @@ const Add = ({ token }) => {
           </div>
         </div>
         {/* Botón para guardar el anime y agregarlo a la lista */}
-        <div className="w-full my-4">
+        <div className={`w-full my-4 ${isSaving && "opacity-25"}`}>
           <div className="px-5 py-5 bg-secondary rounded-lg shadow-lg">
             <input
               className="w-full px-3 py-2 cursor-pointer text-white text-2xl font-bold bg-primary hover:bg-gray-700 transition-colors shadow-lg rounded-lg"
               type="submit"
               value=" Guardar en la lista"
+              onClick={() => {
+                window.scrollTo(0, 0);
+                setIsSaving(true);
+              }}
             />
           </div>
         </div>

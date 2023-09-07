@@ -1,9 +1,9 @@
+import { useState, useEffect } from "react";
 import {
   getRecently,
   getHighestRating,
   getRecommendations,
 } from "../../api/api";
-import { useState, useEffect } from "react";
 import Recently from "../../components/Recently";
 import HighestRating from "../../components/HighestRating";
 import Recommendation from "../../components/Recommendation";

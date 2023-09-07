@@ -4,7 +4,7 @@ import Footer from "./Footer";
 
 const LayoutIndex = ({ token }) => {
   return (
-    <div className="h-screen">
+    <div className="h-full">
       <NavBar token={token} />
       <Outlet />
       <Footer />

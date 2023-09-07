@@ -1,8 +1,8 @@
+import { useEffect } from "react";
 import { Form, Link, useActionData, Navigate } from "react-router-dom";
-import FormRegister from "../components/FormRegister";
 import { register } from "../api/api";
 import useSuccess from "../hook/useSuccess";
-import { useEffect } from "react";
+import FormRegister from "../components/FormRegister";
 import Alert from "../components/Alert";
 
 export async function action({ request }) {

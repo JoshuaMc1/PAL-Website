@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
+import { useLoaderData } from "react-router-dom";
 import { getAnime } from "../../api/api";
 import { getAnime as loadAnimeApi } from "../../api/characters";
-import { useLoaderData } from "react-router-dom";
-import NoImage from "../../img/no-img.png";
 import { generateId } from "../../helpers/helpers";
-import FloatButton from "../../components/FloatButton";
 import { FaExclamationTriangle } from "react-icons/fa";
+import FloatButton from "../../components/FloatButton";
+import NoImage from "../../img/no-img.png";
 
 export function loader({ params }) {
   if (params.slug) {
@@ -124,7 +124,7 @@ const View = ({ token }) => {
               </div>
               <div className="w-full">
                 <h4 className="text-xl font-bold text-white">Géneros</h4>
-                <div className="flex gap-2">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
                   {anime.genres?.map((genre) => (
                     <span key={generateId()} className="text-md text-white">
                       {genre.name}

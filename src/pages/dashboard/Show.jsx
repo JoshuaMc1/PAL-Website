@@ -1,11 +1,47 @@
 import { useEffect, useState } from "react";
-import { showAnime } from "../../api/api";
-import { useLoaderData } from "react-router-dom";
-import NoImage from "../../img/no-img.png";
-import Rate from "../../components/Rate";
+import { Form, useLoaderData, useActionData, Navigate } from "react-router-dom";
+import { deleteAnime, showAnime } from "../../api/api";
 import { generateId, formatDate } from "../../helpers/helpers";
+import { FaCheckCircle, FaTrash } from "react-icons/fa";
+import Rate from "../../components/Rate";
 import FloatButton from "../../components/FloatButton";
-import { FaCheckCircle } from "react-icons/fa";
+import Alert from "../../components/Alert";
+import NoImage from "../../img/no-img.png";
+
+export async function action({ request }) {
+  const formData = await request.formData(),
+    data = Object.fromEntries(formData),
+    errors = [];
+
+  if (!data.id) {
+    errors.push({
+      success: false,
+      message: "Algo esta mal, por favor recarga la pagina...",
+    });
+
+    return errors;
+  }
+
+  const sendData = {
+    id: data.id,
+  };
+
+  const response = await deleteAnime(data._token, sendData);
+
+  if (response.success) {
+    errors.push({
+      success: response.success,
+      message: response.message,
+    });
+  } else {
+    errors.push({
+      success: response.success,
+      message: response.message,
+    });
+  }
+
+  return errors;
+}
 
 export function loader({ params }) {
   if (params.slug) {
@@ -44,7 +80,12 @@ const Show = ({ token }) => {
     [currently, setCurrently] = useState(""),
     [createdAt, setCreatedAt] = useState(""),
     [show, setShow] = useState(false),
-    [message, setMessage] = useState("");
+    [id, setID] = useState(null),
+    [message, setMessage] = useState(""),
+    [error, setError] = useState("");
+
+  const action = useActionData(),
+    [redirect, setRedirect] = useState(false);
 
   useEffect(() => {
     if (request.slug) {
@@ -63,6 +104,7 @@ const Show = ({ token }) => {
           setTheGood(response.data.the_good);
           setCurrently(currentlyOptions[response.data.currently]);
           setCreatedAt(formatDate(response.data.created_at));
+          setID(response.data.id);
         }
       };
 
@@ -80,8 +122,24 @@ const Show = ({ token }) => {
     }
   }, [request]);
 
+  useEffect(() => {
+    if (action?.length > 0) {
+      if (action[0]?.success) {
+        setShow(true);
+        setMessage(
+          `${action[0].message}, sera redirigido a su lista de anime en 4 segundos...`
+        );
+
+        setTimeout(() => setRedirect(true), 4000);
+      } else {
+        setError(action.message);
+      }
+    }
+  }, [action]);
+
   return (
     <>
+      {redirect && <Navigate to={"/dashboard/list/"} replace={"true"} />}
       {show && (
         <div className="w-full mb-6">
           <div className="w-full px-5 py-6 bg-secondary rounded-lg shadow-lg flex items-center align-middle justify-center">
@@ -95,14 +153,29 @@ const Show = ({ token }) => {
           </div>
         </div>
       )}
+      {error?.length > 0 && (
+        <div className="w-full mb-6">
+          <Alert type="danger">{error}</Alert>
+        </div>
+      )}
       <div className="lg:flex gap-4 mb-6">
         <div className="w-full lg:mb-0 lg:w-1/4 space-y-4 mb-4">
           {/* Poster del anime */}
           <div className="overflow-hidden rounded-lg shadow-lg">
             {Object.keys(anime).length > 0 ? (
-              <img className="w-full" src={anime.image} alt={anime.title} />
+              <img
+                className="w-full"
+                src={anime.image}
+                alt={anime.title}
+                loading={"lazy"}
+              />
             ) : (
-              <img className="w-full" src={NoImage} alt="Imagen por defecto" />
+              <img
+                className="w-full"
+                src={NoImage}
+                alt="Imagen por defecto"
+                loading={"lazy"}
+              />
             )}
           </div>
           <div className="bg-secondary p-3 rounded-lg shadow-lg">
@@ -117,60 +190,75 @@ const Show = ({ token }) => {
               />
             </div>
           </div>
-          <div className="bg-secondary p-3 rounded-lg shadow-lg">
-            <h2 className="text-2xl text-center text-white font-bold">
-              Animación
-            </h2>
-            <div className="text-center">
-              <Rate
-                rating={animationRating}
-                setRating={setAnimationRating}
-                editable={false}
-              />
+          <div className="grid grid-cols-2 md:grid-cols-1 gap-4">
+            <div className="bg-secondary p-3 rounded-lg shadow-lg">
+              <h2 className="text-2xl text-center text-white font-bold">
+                Animación
+              </h2>
+              <div className="text-center">
+                <Rate
+                  rating={animationRating}
+                  setRating={setAnimationRating}
+                  editable={false}
+                />
+              </div>
             </div>
-          </div>
-          <div className="bg-secondary p-3 rounded-lg shadow-lg">
-            <h2 className="text-2xl text-center text-white font-bold">
-              Historia
-            </h2>
-            <div className="text-center">
-              <Rate
-                rating={historyRating}
-                setRating={setHistoryRating}
-                editable={false}
-              />
+            <div className="bg-secondary p-3 rounded-lg shadow-lg">
+              <h2 className="text-2xl text-center text-white font-bold">
+                Historia
+              </h2>
+              <div className="text-center">
+                <Rate
+                  rating={historyRating}
+                  setRating={setHistoryRating}
+                  editable={false}
+                />
+              </div>
             </div>
-          </div>
-          <div className="bg-secondary p-3 rounded-lg shadow-lg">
-            <h2 className="text-2xl text-center text-white font-bold">
-              Personajes
-            </h2>
-            <div className="text-center">
-              <Rate
-                rating={charactersRating}
-                setRating={setCharactersRating}
-                editable={false}
-              />
+            <div className="bg-secondary p-3 rounded-lg shadow-lg">
+              <h2 className="text-2xl text-center text-white font-bold">
+                Personajes
+              </h2>
+              <div className="text-center">
+                <Rate
+                  rating={charactersRating}
+                  setRating={setCharactersRating}
+                  editable={false}
+                />
+              </div>
             </div>
-          </div>
-          <div className="bg-secondary p-3 rounded-lg shadow-lg">
-            <h2 className="text-2xl text-center text-white font-bold">
-              Música
-            </h2>
-            <div className="text-center">
-              <Rate
-                rating={musicRating}
-                setRating={setMusicRating}
-                editable={false}
-              />
+            <div className="bg-secondary p-3 rounded-lg shadow-lg">
+              <h2 className="text-2xl text-center text-white font-bold">
+                Música
+              </h2>
+              <div className="text-center">
+                <Rate
+                  rating={musicRating}
+                  setRating={setMusicRating}
+                  editable={false}
+                />
+              </div>
             </div>
           </div>
         </div>
         <div className="w-full lg:mb-0 lg:w-3/4 space-y-4 mb-4">
           <div className="w-full px-5 py-6 bg-secondary rounded-lg shadow-lg">
-            <p className="text-2xl text-white font-bold">
-              {anime.title + " - " + anime.title_japanese}
-            </p>
+            <div className="w-full flex flex-row">
+              <h1 className="text-2xl text-white font-bold w-full">
+                {anime.title + " - " + anime.title_japanese}
+              </h1>
+              <Form method="POST" className="w-auto" noValidate>
+                <input type="hidden" name="id" defaultValue={id} />
+                <input type="hidden" name="_token" defaultValue={token} />
+                <button
+                  className="w-full px-3 py-2 cursor-pointer bg-red-800 hover:bg-red-900 transition-colors shadow-lg rounded-lg"
+                  type="submit"
+                  title="Eliminar Anime"
+                >
+                  <FaTrash className="h-4 w-4 text-white" aria-hidden="true" />
+                </button>
+              </Form>
+            </div>
             <div className="my-6">
               <h4 className="text-xl font-bold text-white">Sinopsis</h4>
               <p className="text-sm text-white">{anime.synopsis}</p>
@@ -235,7 +323,7 @@ const Show = ({ token }) => {
               </h4>
               <p className="text-sm text-white">
                 {theGood?.length > 0
-                  ? theBad
+                  ? theGood
                   : "No agregaste un comentario sobre lo bueno de este anime."}
               </p>
             </div>
@@ -254,6 +342,8 @@ const Show = ({ token }) => {
             <h2 className="text-2xl font-bold text-white">
               Personajes favoritos
             </h2>
+            {/* grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-2 */}
+            {/* grid md:grid-flow-col-dense sm:grid-flow-col gap-2 */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-2 py-4">
               {characters.map((character) => (
                 <div
@@ -264,6 +354,7 @@ const Show = ({ token }) => {
                     className="w-full h-96"
                     src={character.image}
                     alt={character.name}
+                    loading={"lazy"}
                   />
                   <div className="text-white font-bold text-center text-lg truncate px-1 py-2 capitalize">
                     {character.name}

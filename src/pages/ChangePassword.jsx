@@ -1,5 +1,6 @@
 import { Form } from "react-router-dom";
 import FormChangePassword from "../components/FormChangePassword";
+
 const ChangePassword = () => {
   return (
     <div className="my-24 flex justify-center items-center">

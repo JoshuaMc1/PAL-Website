@@ -23,7 +23,7 @@ const Upcoming = () => {
   return (
     <>
       <div className="mb-10">
-        <div className="flex justify-between">
+        <div className="flex lg:justify-between lg:flex-row justify-center align-center content-center flex-col">
           <h1 className="text-4xl text-white font-bold mb-6">
             Próximos estrenos
           </h1>
@@ -40,7 +40,7 @@ const Upcoming = () => {
                   >
                     Anterior
                   </button>
-                  <span className="py-2 px-3 bg-secondary text-white font-bold text-center rounded-lg shadow-lg cursor-default">
+                  <span className="py-2 px-3 bg-secondary text-white font-bold text-center rounded-lg shadow-lg cursor-default hidden md:block">
                     Pagina {pagination.current_page} de{" "}
                     {pagination.last_visible_page}
                   </span>

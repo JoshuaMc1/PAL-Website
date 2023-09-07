@@ -1,8 +1,5 @@
 import React, { useState, useEffect } from "react";
-import FormChangePasswordProfile from "../../components/FormChangePasswordProfile";
-import Photo from "../../img/default.svg";
-import { Form, useActionData, Navigate, redirect } from "react-router-dom";
-import FormUserInformation from "../../components/FormUserInformation";
+import { Form, useActionData } from "react-router-dom";
 import {
   getUserData,
   updateProfile,
@@ -10,7 +7,10 @@ import {
   updateProfilePhoto,
   deleteUser,
 } from "../../api/api";
+import FormChangePasswordProfile from "../../components/FormChangePasswordProfile";
+import FormUserInformation from "../../components/FormUserInformation";
 import Alert from "../../components/Alert";
+import Photo from "../../img/default.svg";
 
 export async function action({ request }) {
   let regex = new RegExp(
@@ -285,7 +285,7 @@ const Profile = ({ token, setLoad }) => {
               <FormChangePasswordProfile />
             </Form>
           </div>
-          <div className="mb-4 px-5 py-6 bg-secondary rounded-lg shadow-lg">
+          <div className="mb-8 md:mb-4 px-5 py-6 bg-secondary rounded-lg shadow-lg">
             <Form method="POST" onSubmit={handleDeleteUser} noValidate>
               <input
                 type="submit"

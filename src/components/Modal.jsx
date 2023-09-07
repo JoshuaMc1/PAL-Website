@@ -1,8 +1,8 @@
 import { Fragment, useRef, useState, useEffect } from "react";
 import { Dialog, Transition } from "@headlessui/react";
-import Card from "./Card";
 import { searchCharacter } from "../api/characters";
 import { generateId } from "../helpers/helpers";
+import Card from "./Card";
 
 const Modal = ({ open, setOpen, characters, setCharacters }) => {
   const [search, setSearch] = useState(""),

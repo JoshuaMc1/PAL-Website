@@ -169,6 +169,8 @@ export async function getUserData(token) {
         return result;
     } catch (error) {
         sessionStorage.setItem("token", null);
+        localStorage.setItem("token", null);
+        localStorage.setItem("rememberMe", false);
         window.location = "/";
     }
 }
@@ -347,6 +349,30 @@ export async function updateAnime(token, data) {
 
         const result = await response.json();
 
+        return result;
+    } catch (error) {
+        window.location = "/";
+    }
+}
+
+export async function deleteAnime(token, data) {
+    try {
+        const options = {
+            method: 'DELETE',
+            headers: {
+                'content-type': 'application/json',
+                'Accept-Encoding': 'application/gzip',
+                'Accept': 'application/json',
+                'Authorization': 'Bearer ' + token,
+                'Connection': 'keep-alive',
+                'User-Agent': navigator.userAgent
+            },
+            body: JSON.stringify(data)
+        };
+
+        const response = await fetch(`${import.meta.env.VITE_BASE_URL_PAL_API}/anime`, options);
+
+        const result = await response.json();
         return result;
     } catch (error) {
         window.location = "/";

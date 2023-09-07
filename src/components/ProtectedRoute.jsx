@@ -10,8 +10,6 @@ const ProtectedRoute = ({
   const verifyToken = async () => {
     const usr = await getUserData(isAllowed);
 
-    console.log(usr);
-
     if (!usr.success) {
       unauthorized();
     }

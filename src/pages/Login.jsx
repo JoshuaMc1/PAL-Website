@@ -1,9 +1,9 @@
+import { useEffect } from "react";
 import { Form, Link, useActionData, Navigate } from "react-router-dom";
-import FormLogin from "../components/FormLogin";
-import Alert from "../components/Alert";
 import { login } from "../api/api";
 import useSuccess from "../hook/useSuccess";
-import { useEffect } from "react";
+import FormLogin from "../components/FormLogin";
+import Alert from "../components/Alert";
 
 export async function action({ request }) {
   let regex = new RegExp(
@@ -23,6 +23,10 @@ export async function action({ request }) {
   if (Object.values(data).includes("")) {
     errors.push("Todos los campos son obligatorios");
     return errors;
+  }
+
+  if (data?.rememberMe === "on") {
+    localStorage.setItem("rememberMe", true);
   }
 
   const response = await login(data);

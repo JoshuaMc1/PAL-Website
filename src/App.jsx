@@ -1,39 +1,46 @@
+import { useState } from "react";
 import {
   createBrowserRouter,
   redirect,
   RouterProvider,
 } from "react-router-dom";
-import LayoutIndex from "./components/LayoutIndex";
-import Index from "./pages/Index";
-import Login, { action as loginAction } from "./pages/Login";
-import Register, { action as registerAction } from "./pages/Register";
-import ForgotPassword from "./pages/ForgotPassword";
-import ChangePassword from "./pages/ChangePassword";
-import ErrorPage from "./pages/ErrorPage";
-import LayoutDashboard from "./components/LayoutDashboard";
-import Dashboard from "./pages/dashboard/Dashboard";
 import Add, {
   action as addAction,
   loader as addLoader,
 } from "./pages/dashboard/Add";
-import List from "./pages/dashboard/List";
-import Profile, { action as profileAction } from "./pages/dashboard/Profile";
-import SeasonNow from "./pages/dashboard/SeasonNow";
-import Upcoming from "./pages/dashboard/Upcoming";
-import ProtectedRoute from "./components/ProtectedRoute";
-import { useState } from "react";
-import Show, { loader as loaderShow } from "./pages/dashboard/Show";
 import { logout } from "./api/api";
-import Error404 from "./pages/Error404";
+import Login, { action as loginAction } from "./pages/Login";
+import Register, { action as registerAction } from "./pages/Register";
+import Profile, { action as profileAction } from "./pages/dashboard/Profile";
 import View, { loader as loaderView } from "./pages/dashboard/View";
 import AnimeEdit, {
   loader as loaderEdit,
   action as animeEditAction,
 } from "./pages/dashboard/AnimeEdit";
+import Show, {
+  loader as loaderShow,
+  action as actionShow,
+} from "./pages/dashboard/Show";
+import LayoutIndex from "./components/LayoutIndex";
+import Index from "./pages/Index";
+import ForgotPassword from "./pages/ForgotPassword";
+import ChangePassword from "./pages/ChangePassword";
+import ErrorPage from "./pages/ErrorPage";
+import LayoutDashboard from "./components/LayoutDashboard";
+import Dashboard from "./pages/dashboard/Dashboard";
+import List from "./pages/dashboard/List";
+import SeasonNow from "./pages/dashboard/SeasonNow";
+import Upcoming from "./pages/dashboard/Upcoming";
+import ProtectedRoute from "./components/ProtectedRoute";
+import Error404 from "./pages/Error404";
 
 const App = () => {
   const [token, setToken] = useState(
-    sessionStorage.getItem("token")
+    localStorage.getItem("rememberMe") === "true"
+      ? localStorage.getItem("token")
+        ? JSON.parse(localStorage.getItem("token"))
+        : null
+      : sessionStorage.getItem("token")
       ? JSON.parse(sessionStorage.getItem("token"))
       : null
   );
@@ -42,13 +49,19 @@ const App = () => {
   const addToken = (data) => {
     setToken(data);
 
-    sessionStorage.setItem("token", JSON.stringify(data) ?? null);
+    if (localStorage.getItem("rememberMe") === "true") {
+      localStorage.setItem("token", JSON.stringify(data) ?? null);
+    } else {
+      sessionStorage.setItem("token", JSON.stringify(data) ?? null);
+    }
 
     redirect("/dashboard");
   };
 
   const unauthorized = () => {
     sessionStorage.setItem("token", null);
+    localStorage.setItem("rememberMe", false);
+    localStorage.setItem("token", null);
     setToken(null);
     redirect("/");
     console.clear();
@@ -127,6 +140,7 @@ const App = () => {
           element: <Show token={token} />,
           errorElement: <ErrorPage />,
           loader: loaderShow,
+          action: actionShow,
         },
         {
           path: "/dashboard/view/:slug/view",
@@ -163,6 +177,8 @@ const App = () => {
 
             if (response.success) {
               sessionStorage.setItem("token", null);
+              localStorage.setItem("token", null);
+              localStorage.setItem("rememberMe", false);
               setToken(null);
             }
 

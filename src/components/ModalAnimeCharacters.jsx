@@ -1,8 +1,8 @@
 import { Fragment, useRef, useState, useEffect } from "react";
 import { Dialog, Transition } from "@headlessui/react";
-import Card from "./Card";
 import { getCharactersAnime } from "../api/characters";
 import { generateId } from "../helpers/helpers";
+import Card from "./Card";
 
 const ModalAnimeCharacters = ({
   open,
@@ -85,10 +85,21 @@ const ModalAnimeCharacters = ({
                                     character.character.mal_id + generateId()
                                   }
                                   onClick={() => {
-                                    setCharacters([
-                                      ...characters,
-                                      character.character,
-                                    ]);
+                                    const characterExists = characters.find(
+                                      (c) =>
+                                        c.mal_id === character.character.mal_id
+                                    );
+
+                                    if (
+                                      !characterExists &&
+                                      characters.length < 5
+                                    ) {
+                                      setCharacters([
+                                        ...characters,
+                                        character.character,
+                                      ]);
+                                    }
+
                                     setOpen(false);
                                     setResult([]);
                                   }}

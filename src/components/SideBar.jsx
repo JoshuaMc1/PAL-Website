@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { getUserData } from "../api/api";
 import { HiMenuAlt3 } from "react-icons/hi";
 import { AiFillHome } from "react-icons/ai";
 import { IoIosAddCircle, IoMdListBox } from "react-icons/io";
@@ -7,9 +8,8 @@ import { MdUpcoming } from "react-icons/md";
 import { IoExit } from "react-icons/io5";
 import { FaUserAlt } from "react-icons/fa";
 import { Link } from "react-router-dom";
-import Profile from "../img/default.svg";
 import useScreenSize from "../hook/useScreenSize";
-import { getUserData } from "../api/api";
+import Profile from "../img/default.svg";
 
 const SideBar = ({ token, load, setLoad }) => {
   const [open, setOpen] = useState(true),

@@ -1,5 +1,5 @@
-import { FaStar } from "react-icons/fa";
 import { useEffect, useState } from "react";
+import { FaStar } from "react-icons/fa";
 
 const colors = {
   orange: "#FFBA5A",

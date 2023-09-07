@@ -1,17 +1,27 @@
+import { useEffect, useState } from "react";
 import { Form } from "react-router-dom";
-import Card from "../../components/Card";
 import { getList } from "../../api/api";
 import { getGenres, getDemographics } from "../../api/characters";
-import { useEffect, useState } from "react";
-import Spinner from "../../components/Spinner";
-import { FaSadTear } from "react-icons/fa";
 import { generateId } from "../../helpers/helpers";
+import { FaSadTear } from "react-icons/fa";
+import Card from "../../components/Card";
+import Spinner from "../../components/Spinner";
 
 const List = ({ token }) => {
   const [list, setList] = useState([]),
     [genres, setGenres] = useState([]),
     [demographic, setDemographics] = useState([]),
-    [loading, setLoading] = useState(false);
+    [loading, setLoading] = useState(false),
+    [filterDemographics, setFilterDemographics] = useState(""),
+    [filterGenre, setFilterGenre] = useState("");
+
+  const handleFilter = (event) => {
+    event.preventDefault();
+
+    console.log(
+      "Aplicando filtro para: " + filterDemographics + " " + filterGenre
+    );
+  };
 
   useEffect(() => {
     setLoading(true);
@@ -43,7 +53,7 @@ const List = ({ token }) => {
     <>
       <div className="mb-4 px-5 py-6 bg-secondary rounded-lg shadow-lg">
         <h2 className="text-2xl font-bold text-white">Filtro</h2>
-        <Form>
+        <Form onSubmit={handleFilter}>
           <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
             <div className="mt-2">
               <label
@@ -55,6 +65,8 @@ const List = ({ token }) => {
               <select
                 className="p-3 mt-2 rounded-lg shadow-lg bg-primary w-full text-white outline-none"
                 id="demographic"
+                value={filterDemographics}
+                onChange={(e) => setFilterDemographics(e.target.value)}
               >
                 <option value="">Seleccione una opción</option>
                 {demographic.map((item) => (
@@ -74,6 +86,8 @@ const List = ({ token }) => {
               <select
                 className="p-3 mt-2 rounded-lg shadow-lg bg-primary w-full text-white outline-none"
                 id="genre"
+                value={filterGenre}
+                onChange={(e) => setFilterGenre(e.target.value)}
               >
                 <option value="">Seleccione una opción</option>
                 {genres.map((item) => (
@@ -116,7 +130,7 @@ const List = ({ token }) => {
           </div>
         </div>
       ) : Object.keys(list).length > 0 ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-2 mb-4">
           {list.map((data) => (
             <Card
               key={generateId()}
